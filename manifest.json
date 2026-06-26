@@ -1,0 +1,20 @@
+{
+  "name": "BoredGames",
+  "short_name": "BoredGames",
+  "description": "12 party games for groups — Charades, Imposter, Trivia, Truth or Dare and more",
+  "start_url": "/BoredGames/",
+  "scope": "/BoredGames/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment", "social"]
+}

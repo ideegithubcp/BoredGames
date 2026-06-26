@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BoredGames — Party Games for Groups</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#0f0f1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BoredGames" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <style>
     :root {
       --bg: #0f0f1a;
@@ -1369,6 +1376,12 @@ function renderStoryEnd() {
 //  INIT
 // ═══════════════════════════════════════════════════════
 renderLanding();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js');
+  });
+}
 </script>
 
 <script data-goatcounter="https://boredgames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

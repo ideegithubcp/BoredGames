@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f0f1a"/>
+  <rect x="40" y="40" width="432" height="432" rx="72" fill="#1a1a2e"/>
+  <!-- Dice face -->
+  <rect x="96" y="96" width="140" height="140" rx="24" fill="#e94560"/>
+  <circle cx="166" cy="166" r="18" fill="#fff"/>
+  <!-- Dice face 2 -->
+  <rect x="276" y="96" width="140" height="140" rx="24" fill="#a855f7"/>
+  <circle cx="316" cy="136" r="14" fill="#fff"/>
+  <circle cx="376" cy="196" r="14" fill="#fff"/>
+  <!-- Dice face 3 -->
+  <rect x="96" y="276" width="140" height="140" rx="24" fill="#3b82f6"/>
+  <circle cx="136" cy="316" r="14" fill="#fff"/>
+  <circle cx="166" cy="346" r="14" fill="#fff"/>
+  <circle cx="196" cy="316" r="14" fill="#fff"/>
+  <!-- Dice face 4 -->
+  <rect x="276" y="276" width="140" height="140" rx="24" fill="#22c55e"/>
+  <circle cx="316" cy="316" r="13" fill="#fff"/>
+  <circle cx="376" cy="316" r="13" fill="#fff"/>
+  <circle cx="316" cy="376" r="13" fill="#fff"/>
+  <circle cx="376" cy="376" r="13" fill="#fff"/>
+</svg>
