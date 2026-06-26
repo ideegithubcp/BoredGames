@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BoredGames — Party Games for Groups</title>
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --accent1: #e94560;
+      --accent2: #0f3460;
+      --accent3: #533483;
+      --text: #eaeaea;
+      --muted: #888;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    header {
+      text-align: center;
+      padding: 32px 16px 8px;
+    }
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #e94560, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p { color: var(--muted); margin-top: 6px; font-size: 0.95rem; }
+    .drawer-label {
+      text-align: center;
+      margin: 24px 0 12px;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 16px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+    .game-card {
+      background: var(--surface);
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      padding: 24px 16px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    }
+    .game-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: var(--card-color, #e94560); }
+    .game-card .icon { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+    .game-card h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 5px; }
+    .game-card p { font-size: 0.77rem; color: var(--muted); line-height: 1.4; }
+    .game-card .tag {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.68rem;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+    }
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-bg.open { display: flex; animation: fadeIn 0.2s; }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 480px;
+      width: 100%;
+      position: relative;
+      animation: slideUp 0.22s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 16px;
+      background: none; border: none;
+      color: var(--muted); font-size: 1.4rem;
+      cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-icon { font-size: 3rem; text-align: center; display: block; margin-bottom: 10px; }
+    .modal h2 { font-size: 1.5rem; text-align: center; margin-bottom: 6px; }
+    .modal .desc { color: var(--muted); font-size: 0.88rem; text-align: center; margin-bottom: 24px; line-height: 1.5; }
+    .setup label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.5px; }
+    .setup input[type=number], .setup input[type=text], .setup select {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid #333;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .setup input:focus, .setup select:focus { border-color: var(--accent1); }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      background: linear-gradient(135deg, var(--accent1), var(--accent3));
+      color: #fff;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1.5px solid #333;
+      margin-top: 10px;
+    }
+    .btn-green { background: linear-gradient(135deg,#22c55e,#16a34a); }
+    .turn-header {
+      text-align: center;
+      padding: 14px;
+      background: var(--surface2);
+      border-radius: 12px;
+      margin-bottom: 18px;
+    }
+    .turn-header .player-name { font-size: 1.1rem; font-weight: 700; }
+    .turn-header .round-info { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .card-display {
+      background: var(--surface2);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      margin-bottom: 18px;
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      border: 2px dashed #2a2a3e;
+    }
+    .card-display .main-text { font-size: 1.5rem; font-weight: 800; line-height: 1.3; }
+    .card-display .sub-text { font-size: 0.83rem; color: var(--muted); margin-top: 8px; }
+    .card-display .category { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent1); margin-bottom: 8px; }
+    .timer-ring { position: relative; width: 80px; height: 80px; margin: 0 auto 14px; }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .timer-ring .timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; }
+    .timer-ring circle { fill: none; stroke-width: 5; }
+    .timer-ring .bg-circle { stroke: #333; }
+    .timer-ring .progress-circle { stroke: var(--accent1); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+    .players-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; justify-content: center; }
+    .player-chip {
+      padding: 5px 14px; border-radius: 99px; font-size: 0.82rem;
+      background: var(--bg); border: 1.5px solid #333; cursor: pointer; transition: all 0.15s;
+    }
+    .player-chip.active { background: var(--accent1); border-color: var(--accent1); color: #fff; }
+    .player-chip.agree { background: #22c55e; border-color: #22c55e; color: #fff; }
+    .player-chip.disagree { background: var(--accent1); border-color: var(--accent1); color: #fff; }
+    .score-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-bottom: 18px; }
+    .score-card { background: var(--bg); border-radius: 12px; padding: 10px; text-align: center; }
+    .score-card .sname { font-size: 0.75rem; color: var(--muted); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .score-card .sval { font-size: 1.3rem; font-weight: 800; color: var(--accent1); }
+    .result-banner {
+      text-align: center; padding: 18px;
+      background: linear-gradient(135deg, rgba(233,69,96,0.12), rgba(83,52,131,0.12));
+      border-radius: 16px; border: 2px solid rgba(233,69,96,0.3); margin-bottom: 18px;
+    }
+    .result-banner .winner { font-size: 1.7rem; font-weight: 900; }
+    .result-banner .sub { color: var(--muted); font-size: 0.85rem; margin-top: 4px; line-height: 1.5; }
+    .options-grid { display: grid; gap: 9px; margin-bottom: 14px; }
+    .option-btn {
+      background: var(--bg); border: 1.5px solid #333; border-radius: 12px;
+      padding: 12px 16px; color: var(--text); font-size: 0.9rem;
+      cursor: pointer; text-align: left; transition: all 0.15s;
+    }
+    .option-btn:hover { border-color: var(--accent1); background: rgba(233,69,96,0.08); }
+    .option-btn.correct { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; }
+    .option-btn.wrong { border-color: var(--accent1); background: rgba(233,69,96,0.12); opacity: 0.6; }
+    .imposter-badge {
+      display: inline-block; background: var(--accent1); color: #fff;
+      padding: 4px 14px; border-radius: 99px; font-size: 0.78rem;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+    }
+    .reveal-card {
+      background: var(--surface2); border-radius: 10px; padding: 12px;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+    }
+    .reveal-card .pname { font-weight: 700; flex: 1; }
+    .reveal-card .role { font-size: 0.78rem; color: var(--muted); }
+    .reveal-card .role.imp { color: var(--accent1); font-weight: 700; }
+    .taboo-word { font-size: 1.8rem; font-weight: 900; margin-bottom: 12px; }
+    .taboo-forbidden {
+      display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;
+    }
+    .taboo-forbidden span {
+      background: rgba(233,69,96,0.12); border: 1px solid rgba(233,69,96,0.3);
+      border-radius: 8px; padding: 7px 12px; font-size: 0.9rem; color: #e94560;
+      text-decoration: line-through; text-align: center;
+    }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .hidden { display: none !important; }
+    .story-bubble {
+      background: var(--bg); border-radius: 12px; padding: 10px 14px;
+      margin-bottom: 8px; font-size: 0.88rem; line-height: 1.5; border-left: 3px solid var(--accent3);
+    }
+    .story-bubble .who { font-size: 0.72rem; color: var(--muted); margin-bottom: 3px; }
+    .vote-row {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .vote-row .vname { flex: 1; font-size: 0.9rem; }
+    .vote-row button {
+      padding: 4px 12px; border-radius: 99px; border: 1.5px solid #333;
+      background: none; color: var(--text); cursor: pointer; font-size: 0.8rem; transition: all 0.15s;
+    }
+    .vote-row button.sel-a { background: rgba(233,69,96,0.2); border-color: var(--accent1); color: var(--accent1); }
+    .vote-row button.sel-b { background: rgba(59,130,246,0.2); border-color: #3b82f6; color: #3b82f6; }
+    .vote-row button.sel-agree { background: rgba(34,197,94,0.2); border-color: #22c55e; color: #22c55e; }
+    .vote-row button.sel-disagree { background: rgba(233,69,96,0.2); border-color: var(--accent1); color: var(--accent1); }
+  </style>
+</head>
+<body>
+
+<div id="landing">
+  <header>
+    <h1>BoredGames</h1>
+    <p>Pick a game from the drawer and play together!</p>
+  </header>
+  <div class="drawer-label">— Open the Drawer —</div>
+  <div class="games-grid" id="gamesGrid"></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <span class="modal-icon" id="modalIcon"></span>
+    <h2 id="modalTitle"></h2>
+    <p class="desc" id="modalDesc"></p>
+    <div class="setup" id="setupScreen">
+      <label>Number of Players (2–10)</label>
+      <input type="number" id="playerCount" min="2" max="10" value="4" />
+      <div id="playerNamesSection">
+        <label>Player Names (optional)</label>
+        <div id="playerNamesInputs"></div>
+      </div>
+      <div id="extraSetup"></div>
+      <button class="btn" onclick="startGame()">Start Game</button>
+    </div>
+    <div id="gameScreen"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  GAME DATA
+// ═══════════════════════════════════════════════════════
+const GAMES = [
+  {
+    id: 'charades',
+    name: 'Charades',
+    icon: '🎭',
+    color: '#e94560',
+    players: '3+',
+    desc: 'Act it out without saying a word. Team up and guess before the timer runs out!',
+    categories: {
+      'Movies': ['The Lion King','Avengers Endgame','Titanic','Jurassic Park','The Matrix','Inception','Finding Nemo','Home Alone','Forrest Gump','The Dark Knight','Frozen','Harry Potter','Star Wars','Toy Story','Interstellar','Shrek','The Godfather','Pulp Fiction','La La Land','Parasite'],
+      'Animals': ['Elephant','Penguin','Kangaroo','Flamingo','Giraffe','Dolphin','Octopus','Cheetah','Panda','Crocodile','Sloth','Meerkat','Peacock','Platypus','Mantis shrimp'],
+      'Actions': ['Swimming','Cooking','Playing guitar','Brushing teeth','Taking a selfie','Riding a bike','Dancing','Sneezing','Painting','Rock climbing','Knitting','Surfing','Meditating','Texting','Doing yoga'],
+      'Famous People': ['Albert Einstein','Michael Jackson','Elon Musk','Oprah Winfrey','Cristiano Ronaldo','Taylor Swift','Sherlock Holmes','Mahatma Gandhi','Beyoncé','Leonardo da Vinci'],
+      'Food': ['Pizza','Spaghetti','Sushi','Burger','Ice cream','Taco','Croissant','Ramen','Samosa','Chocolate fondue','Churros','Dim sum','Baklava','Hot pot','Pho'],
+    }
+  },
+  {
+    id: 'imposter',
+    name: 'Imposter',
+    icon: '🕵️',
+    color: '#a855f7',
+    players: '4+',
+    desc: 'Everyone gets the same secret word — except one imposter. Discuss and vote them out!',
+    wordSets: [
+      {word:'Coffee',fake:'Tea'},{word:'Beach',fake:'Desert'},{word:'Pizza',fake:'Burger'},
+      {word:'Dog',fake:'Cat'},{word:'Guitar',fake:'Piano'},{word:'Cinema',fake:'Theatre'},
+      {word:'Football',fake:'Rugby'},{word:'Paris',fake:'Madrid'},{word:'Astronaut',fake:'Pilot'},
+      {word:'Sushi',fake:'Ramen'},{word:'Surfing',fake:'Skiing'},{word:'Vampire',fake:'Werewolf'},
+      {word:'Library',fake:'Bookshop'},{word:'Elephant',fake:'Rhino'},{word:'Birthday',fake:'Anniversary'},
+      {word:'Submarine',fake:'Spaceship'},{word:'Jazz',fake:'Blues'},{word:'Chess',fake:'Checkers'},
+      {word:'Champagne',fake:'Wine'},{word:'Volcano',fake:'Geyser'},
+    ]
+  },
+  {
+    id: 'twotruths',
+    name: 'Two Truths One Lie',
+    icon: '🤥',
+    color: '#f59e0b',
+    players: '3+',
+    desc: 'Share two truths and one lie. Everyone votes on which one is the lie!',
+  },
+  {
+    id: 'neverhaveiever',
+    name: 'Never Have I Ever',
+    icon: '🤚',
+    color: '#22c55e',
+    players: '3+',
+    desc: 'Say "Never Have I Ever…" — anyone who HAS done it puts a finger down!',
+    statements: [
+      'gone skydiving','sung karaoke in public','stayed awake for 24 hours','eaten something off the floor',
+      'lied to get out of plans','sent a text to the wrong person','burned food so badly I had to throw it away',
+      'pretended to be sick to skip work or school','talked to an animal like a human','gotten lost somewhere embarrassing',
+      'danced alone in public','forgotten someone\'s birthday','binged an entire season in one day',
+      'laughed so hard I cried','cried at a movie in a cinema','slept through an alarm',
+      'replied "you too" when a waiter said enjoy your meal','said "I love you" by accident',
+      'taken a selfie in a totally ridiculous place','googled something embarrassing',
+      'waved back at someone who wasn\'t waving at me','called a teacher "mum" or "dad"',
+      'spent more than an hour choosing what to watch','eaten food past its expiry date and been fine',
+    ]
+  },
+  {
+    id: 'wouldyourather',
+    name: 'Would You Rather',
+    icon: '🤔',
+    color: '#3b82f6',
+    players: '2+',
+    desc: 'Choose between two outrageous options. Explain your choice and see who agrees!',
+    pairs: [
+      ['Have the ability to fly','Have the ability to turn invisible'],
+      ['Only eat pizza forever','Never eat pizza again'],
+      ['Know how you die','Know when you die'],
+      ['Speak every language','Play every instrument'],
+      ['Live without music','Live without movies'],
+      ['Be extremely funny','Be extremely intelligent'],
+      ['Have a pet dragon','Have a pet unicorn'],
+      ['Travel to the past','Travel to the future'],
+      ['Never sleep','Never dream'],
+      ['Be famous but broke','Be rich but unknown'],
+      ['Lose all your memories','Never make new ones'],
+      ['Always be cold','Always be hot'],
+      ['Have no phone for a month','Have no internet for a month'],
+      ['Be the funniest person in the room','Be the smartest person in the room'],
+      ['Live in a tiny house in paradise','Live in a mansion in a boring city'],
+      ['Only be able to whisper','Only be able to shout'],
+      ['Have hands instead of feet','Have feet instead of hands'],
+      ['Fight 100 duck-sized horses','Fight 1 horse-sized duck'],
+    ]
+  },
+  {
+    id: 'truthordare',
+    name: 'Truth or Dare',
+    icon: '🔥',
+    color: '#f97316',
+    players: '3+',
+    desc: 'The classic. Pick truth and answer honestly, or pick dare and do it!',
+    truths: [
+      'What is the most embarrassing thing you\'ve ever done?',
+      'What is your biggest fear?',
+      'What is the worst lie you\'ve ever told?',
+      'Have you ever had a crush on someone in this room?',
+      'What is the most childish thing you still do?',
+      'What is your most irrational pet peeve?',
+      'What\'s a secret you\'ve never told anyone here?',
+      'What is the most awkward date you\'ve been on?',
+      'What food do you pretend to like but secretly hate?',
+      'What\'s the most money you\'ve ever spent on something you regret?',
+      'What\'s the strangest dream you\'ve ever had?',
+      'What would you do if you knew you couldn\'t fail?',
+      'What is something you\'re surprisingly bad at?',
+      'What is the most illegal thing you\'ve done and gotten away with?',
+      'When did you last cry and why?',
+      'What\'s the most embarrassing thing on your search history?',
+    ],
+    dares: [
+      'Do your best impression of the person to your left.',
+      'Speak in an accent for the next 3 rounds.',
+      'Let someone post anything as your social media status.',
+      'Do 10 push-ups right now.',
+      'Call a family member and sing Happy Birthday to them.',
+      'Do your best catwalk around the room.',
+      'Let the group go through your camera roll for 30 seconds.',
+      'Say something genuinely nice about every person here.',
+      'Do your best robot dance for 30 seconds.',
+      'Eat a spoonful of something from the kitchen.',
+      'Let the person to your right draw something on your face.',
+      'Talk in slow motion for the next 2 rounds.',
+      'Do your best celebrity impression until someone guesses who it is.',
+      'Speak only in questions for the next round.',
+      'Do a dramatic reading of the last text message you received.',
+    ]
+  },
+  {
+    id: 'trivia',
+    name: 'Trivia',
+    icon: '🧠',
+    color: '#06b6d4',
+    players: '2+',
+    desc: 'Race to answer multiple-choice questions. First to buzz in scores the point!',
+    questions: [
+      {q:'What is the capital of Australia?',a:'Canberra',opts:['Sydney','Melbourne','Canberra','Brisbane']},
+      {q:'How many sides does a hexagon have?',a:'6',opts:['5','6','7','8']},
+      {q:'Who painted the Mona Lisa?',a:'Leonardo da Vinci',opts:['Michelangelo','Raphael','Leonardo da Vinci','Botticelli']},
+      {q:'What is the chemical symbol for gold?',a:'Au',opts:['Go','Ag','Au','Gd']},
+      {q:'Which planet is known as the Red Planet?',a:'Mars',opts:['Venus','Jupiter','Saturn','Mars']},
+      {q:'How many bones are in the adult human body?',a:'206',opts:['198','206','214','222']},
+      {q:'Who wrote Romeo and Juliet?',a:'Shakespeare',opts:['Dickens','Chaucer','Shakespeare','Marlowe']},
+      {q:'What is the fastest land animal?',a:'Cheetah',opts:['Lion','Leopard','Cheetah','Greyhound']},
+      {q:'In what year did the Titanic sink?',a:'1912',opts:['1908','1910','1912','1915']},
+      {q:'What is the smallest country in the world?',a:'Vatican City',opts:['Monaco','San Marino','Liechtenstein','Vatican City']},
+      {q:'Which element has the atomic number 1?',a:'Hydrogen',opts:['Helium','Lithium','Hydrogen','Carbon']},
+      {q:'How many strings does a standard guitar have?',a:'6',opts:['4','5','6','7']},
+      {q:'What language is spoken in Brazil?',a:'Portuguese',opts:['Spanish','Portuguese','English','French']},
+      {q:'What is the longest river in the world?',a:'Nile',opts:['Amazon','Yangtze','Nile','Mississippi']},
+      {q:'Which company created the iPhone?',a:'Apple',opts:['Samsung','Google','Apple','Microsoft']},
+      {q:'How many continents are there?',a:'7',opts:['5','6','7','8']},
+      {q:'What is the square root of 144?',a:'12',opts:['10','11','12','13']},
+      {q:'Who was the first person to walk on the moon?',a:'Neil Armstrong',opts:['Buzz Aldrin','Yuri Gagarin','Neil Armstrong','John Glenn']},
+      {q:'What is the most spoken language in the world?',a:'Mandarin Chinese',opts:['English','Spanish','Mandarin Chinese','Hindi']},
+      {q:'In which year did World War II end?',a:'1945',opts:['1943','1944','1945','1946']},
+    ]
+  },
+  {
+    id: 'mostlikelyto',
+    name: 'Most Likely To',
+    icon: '👆',
+    color: '#ec4899',
+    players: '3+',
+    desc: 'Read a prompt — everyone points at once at who they think it fits most!',
+    prompts: [
+      'Who is most likely to become famous?',
+      'Who is most likely to forget where they parked?',
+      'Who is most likely to survive a zombie apocalypse?',
+      'Who is most likely to win a cooking show?',
+      'Who is most likely to still be awake at 4am for no reason?',
+      'Who is most likely to become a millionaire?',
+      'Who is most likely to get lost in their own city?',
+      'Who is most likely to cry at a Disney movie?',
+      'Who is most likely to eat something off the floor?',
+      'Who is most likely to accidentally text the wrong person?',
+      'Who is most likely to cancel plans at the last minute?',
+      'Who is most likely to become president or prime minister?',
+      'Who is most likely to adopt 10 cats?',
+      'Who is most likely to forget an important anniversary?',
+      'Who is most likely to be on a reality TV show?',
+      'Who is most likely to go viral on social media?',
+      'Who is most likely to move to another country?',
+      'Who is most likely to invent something?',
+      'Who is most likely to be late to their own wedding?',
+      'Who is most likely to accidentally like a 3-year-old photo?',
+    ]
+  },
+  {
+    id: 'hottakes',
+    name: 'Hot Takes',
+    icon: '🌶️',
+    color: '#dc2626',
+    players: '3+',
+    desc: 'Read a spicy opinion out loud. Everyone votes Agree or Disagree — then defend your choice!',
+    takes: [
+      'Pineapple on pizza is actually good.',
+      'Cats are better pets than dogs.',
+      'Breakfast is overrated.',
+      'Working from home is better than working in an office.',
+      'Texting is better than calling.',
+      'The book is almost never better than the movie.',
+      'Dessert should be eaten before the main course.',
+      'Everyone should travel solo at least once.',
+      'Cereal is a perfectly acceptable dinner.',
+      'Social media has done more harm than good.',
+      'Bottled water is a scam.',
+      'Board games are more fun than video games.',
+      'Waking up early is overrated.',
+      'Long-distance relationships can absolutely work.',
+      'Mild weather is better than hot sunny weather.',
+      'Honesty is always the best policy, even if it hurts.',
+      'Money can buy happiness.',
+      'Birthdays are not worth celebrating after 25.',
+      'Adults who re-read Harry Potter are wasting their time.',
+      'Parallel parking should be a dealbreaker on a first date.',
+    ]
+  },
+  {
+    id: 'taboo',
+    name: 'Taboo',
+    icon: '🚫',
+    color: '#7c3aed',
+    players: '4+',
+    desc: 'Describe the word on screen without saying any of the forbidden words. Race the clock!',
+    cards: [
+      {word:'Vacation',forbidden:['Holiday','Travel','Beach','Trip','Relax']},
+      {word:'Birthday',forbidden:['Cake','Age','Party','Candles','Celebrate']},
+      {word:'Hospital',forbidden:['Doctor','Sick','Nurse','Medicine','Emergency']},
+      {word:'Kitchen',forbidden:['Cook','Food','Oven','Sink','Room']},
+      {word:'Library',forbidden:['Books','Read','Quiet','Study','Borrow']},
+      {word:'Sunglasses',forbidden:['Sun','Eyes','Shade','Glasses','Beach']},
+      {word:'Elephant',forbidden:['Big','Grey','Trunk','Africa','Animal']},
+      {word:'Password',forbidden:['Computer','Secret','Login','Security','Code']},
+      {word:'Umbrella',forbidden:['Rain','Wet','Open','Weather','Cover']},
+      {word:'Chocolate',forbidden:['Sweet','Brown','Cocoa','Candy','Dark']},
+      {word:'Football',forbidden:['Ball','Kick','Goal','Sport','Team']},
+      {word:'Mountain',forbidden:['High','Climb','Snow','Peak','Hill']},
+      {word:'Wedding',forbidden:['Marriage','Ring','Bride','Love','Dress']},
+      {word:'Submarine',forbidden:['Water','Ocean','Navy','Under','Ship']},
+      {word:'Telescope',forbidden:['Stars','Sky','Space','Look','Lens']},
+      {word:'Microphone',forbidden:['Sing','Speak','Sound','Stage','Voice']},
+      {word:'Earthquake',forbidden:['Shake','Ground','Natural','Disaster','Richter']},
+      {word:'Toothbrush',forbidden:['Teeth','Brush','Clean','Mouth','Morning']},
+      {word:'Fireworks',forbidden:['Explode','Sky','Colour','New Year','Loud']},
+      {word:'Passport',forbidden:['Travel','Country','Border','ID','Visa']},
+    ]
+  },
+  {
+    id: 'alias',
+    name: 'Alias',
+    icon: '⚡',
+    color: '#eab308',
+    players: '3+',
+    desc: 'Describe as many words as possible to your team in 45 seconds — no gestures!',
+    words: [
+      'Rainbow','Elevator','Penguin','Democracy','Astronaut','Microwave','Jealousy','Hammock',
+      'Orchestra','Quicksand','Volcano','Dentist','Compass','Marathon','Parachute','Telescope',
+      'Avalanche','Buffet','Compass','Dinosaur','Equation','Frostbite','Gossip','Honeybee',
+      'Igloo','Juggler','Kayak','Lighthouse','Magnet','Noodle','Oasis','Porcupine',
+      'Quicksand','Rodeo','Sandcastle','Tornado','Unicycle','Venom','Walrus','Xylophone',
+      'Yodel','Zipper','Architect','Blizzard','Catapult','Driftwood','Eclipse','Frisbee',
+      'Glacier','Hamster','Insomnia','Jellyfish','Knitting','Lullaby','Marshmallow','Nectar',
+    ]
+  },
+  {
+    id: 'storytelling',
+    name: 'Story Builder',
+    icon: '📖',
+    color: '#10b981',
+    players: '3+',
+    desc: 'Build a story one sentence at a time. Each player adds a line and passes it on!',
+    starters: [
+      'Once upon a time, in a city where it rained chocolate every Tuesday…',
+      'Nobody expected the cat to speak, but when it did…',
+      'The last train had already left, and the station was completely empty, except for…',
+      'When the scientist accidentally pressed the wrong button, the entire lab…',
+      'Everyone in the village knew the old lighthouse was haunted, but that night…',
+      'The package arrived with no return address and a note that simply said…',
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let state = {};
+
+// ═══════════════════════════════════════════════════════
+//  LANDING
+// ═══════════════════════════════════════════════════════
+function renderLanding() {
+  document.getElementById('gamesGrid').innerHTML = GAMES.map(g => `
+    <div class="game-card" style="--card-color:${g.color}" onclick="openGame('${g.id}')">
+      <span class="icon">${g.icon}</span>
+      <h2>${g.name}</h2>
+      <p>${g.desc}</p>
+      <span class="tag">${g.players} players</span>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL OPEN / SETUP
+// ═══════════════════════════════════════════════════════
+function openGame(id) {
+  const game = GAMES.find(g => g.id === id);
+  state = { gameId: id, game };
+  document.getElementById('modalIcon').textContent = game.icon;
+  document.getElementById('modalTitle').textContent = game.name;
+  document.getElementById('modalDesc').textContent = game.desc;
+  document.getElementById('setupScreen').style.display = 'block';
+  document.getElementById('gameScreen').innerHTML = '';
+  document.getElementById('gameScreen').style.display = 'none';
+
+  const extra = document.getElementById('extraSetup');
+  extra.innerHTML = '';
+  if (id === 'charades') {
+    extra.innerHTML = `
+      <label>Category</label>
+      <select id="charadesCategory">
+        <option value="random">🎲 Random Mix</option>
+        ${Object.keys(game.categories).map(c => `<option value="${c}">${c}</option>`).join('')}
+      </select>
+      <label>Timer (seconds)</label>
+      <input type="number" id="charadesTimer" min="30" max="120" value="60" />`;
+  }
+  if (id === 'imposter') {
+    extra.innerHTML = `<label>Number of Imposters</label>
+      <select id="imposterCount"><option value="1">1 Imposter</option><option value="2">2 Imposters</option></select>`;
+  }
+  if (id === 'taboo') {
+    extra.innerHTML = `<label>Timer (seconds)</label>
+      <input type="number" id="tabooTimer" min="30" max="90" value="60" />`;
+  }
+  if (id === 'alias') {
+    extra.innerHTML = `<label>Timer (seconds)</label>
+      <input type="number" id="aliasTimer" min="30" max="90" value="45" />`;
+  }
+  if (id === 'trivia') {
+    extra.innerHTML = `<label>Questions per player</label>
+      <input type="number" id="triviaPerPlayer" min="1" max="5" value="3" />`;
+  }
+
+  const countInput = document.getElementById('playerCount');
+  countInput.value = 4;
+  buildNameInputs(4);
+  countInput.oninput = () => buildNameInputs(parseInt(countInput.value) || 2);
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function buildNameInputs(n) {
+  n = Math.max(2, Math.min(10, n));
+  const container = document.getElementById('playerNamesInputs');
+  const existing = Array.from(container.querySelectorAll('input')).map(i => i.value);
+  container.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.placeholder = `Player ${i+1}`; inp.value = existing[i] || '';
+    container.appendChild(inp);
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  clearInterval(state.timerInterval);
+}
+
+function getPlayers() {
+  return Array.from(document.querySelectorAll('#playerNamesInputs input'))
+    .map((inp, i) => inp.value.trim() || `Player ${i+1}`);
+}
+
+function startGame() {
+  const players = getPlayers();
+  state.players = players;
+  state.scores = Object.fromEntries(players.map(p => [p, 0]));
+  document.getElementById('setupScreen').style.display = 'none';
+  const gs = document.getElementById('gameScreen');
+  gs.style.display = 'block';
+  ({
+    charades: startCharades, imposter: startImposter, twotruths: startTwoTruths,
+    neverhaveiever: startNeverHaveIEver, wouldyourather: startWouldYouRather,
+    truthordare: startTruthOrDare, trivia: startTrivia, mostlikelyto: startMostLikelyTo,
+    hottakes: startHotTakes, taboo: startTaboo, alias: startAlias, storytelling: startStorytelling,
+  })[state.gameId]();
+}
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function gs() { return document.getElementById('gameScreen'); }
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function renderScoreboard() {
+  return `<div class="score-board">${Object.entries(state.scores).map(([n,s])=>
+    `<div class="score-card"><div class="sname">${n}</div><div class="sval">${s}</div></div>`).join('')}</div>`;
+}
+function topScorer() {
+  return Object.entries(state.scores).reduce((b,[n,s]) => s > b.score ? {name:n,score:s} : b, {name:'',score:-1});
+}
+function showEnd(extraHtml, onPlayAgain) {
+  const w = topScorer();
+  gs().innerHTML = `
+    <div class="result-banner">
+      <div style="font-size:2.4rem">🏆</div>
+      <div class="winner">${w.name} wins!</div>
+      <div class="sub">with ${w.score} point${w.score!==1?'s':''}</div>
+    </div>
+    ${renderScoreboard()}
+    ${extraHtml || ''}
+    <button class="btn" onclick="(${onPlayAgain})()">Play Again</button>
+    <button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+}
+function backToDrawer() { closeModal(); }
+
+function startTimer(secs, onDone, onTick) {
+  let remaining = secs;
+  const circumference = 2 * Math.PI * 35;
+  const tick = () => {
+    const el = document.getElementById('timerText');
+    const circle = document.getElementById('progressCircle');
+    if (!el) return;
+    el.textContent = remaining;
+    circle.style.strokeDashoffset = circumference * (1 - remaining / secs);
+    if (remaining <= 10) circle.style.stroke = '#ef4444';
+    onTick && onTick(remaining);
+    if (remaining <= 0) { clearInterval(state.timerInterval); onDone && onDone(); return; }
+    remaining--;
+  };
+  tick();
+  state.timerInterval = setInterval(tick, 1000);
+}
+
+function timerRingHtml(secs) {
+  const c = 2 * Math.PI * 35;
+  return `<div class="timer-ring">
+    <svg width="80" height="80" viewBox="0 0 80 80">
+      <circle class="bg-circle" cx="40" cy="40" r="35"/>
+      <circle class="progress-circle" id="progressCircle" cx="40" cy="40" r="35" stroke-dasharray="${c}" stroke-dashoffset="0"/>
+    </svg>
+    <div class="timer-text" id="timerText">${secs}</div>
+  </div>`;
+}
+
+function turnHeader(name, info) {
+  return `<div class="turn-header"><div class="player-name">${name}</div><div class="round-info">${info}</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  1. CHARADES
+// ═══════════════════════════════════════════════════════
+function startCharades() {
+  const cat = document.getElementById('charadesCategory')?.value || 'random';
+  const timerSecs = parseInt(document.getElementById('charadesTimer')?.value) || 60;
+  let pool = cat === 'random' ? Object.values(state.game.categories).flat() : [...state.game.categories[cat]];
+  state.charades = { words: shuffle(pool), wordIdx: 0, timerSecs, playerIdx: 0, round: 1 };
+  renderCharadesCard();
+}
+function getCategoryForWord(word) {
+  for (const [cat, words] of Object.entries(state.game.categories)) if (words.includes(word)) return cat;
+  return 'Charades';
+}
+function renderCharadesCard() {
+  const { players, charades, scores } = state;
+  const { words, wordIdx, timerSecs, playerIdx, round } = charades;
+  if (wordIdx >= words.length) { renderCharadesEnd(); return; }
+  clearInterval(state.timerInterval);
+  const word = words[wordIdx]; const player = players[playerIdx];
+  gs().innerHTML = `
+    ${turnHeader(`🎭 ${player}'s Turn`, `Round ${round} · Card ${wordIdx+1} of ${words.length}`)}
+    ${timerRingHtml(timerSecs)}
+    <div class="card-display">
+      <div class="category">${getCategoryForWord(word)}</div>
+      <div class="main-text">${word}</div>
+      <div class="sub-text">Act it out — no words, no sounds!</div>
+    </div>
+    ${renderScoreboard()}
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" style="flex:1" onclick="charadesResult(false)">❌ Missed</button>
+      <button class="btn btn-green" style="flex:1" onclick="charadesResult(true)">✅ Got it! +1</button>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="charadesSkip()">⏭ Skip word</button>`;
+  startTimer(timerSecs, () => {
+    const cd = document.querySelector('.card-display');
+    if (cd) { cd.style.borderColor='#e94560'; cd.querySelector('.sub-text').textContent="⏰ Time's up!"; }
+  });
+}
+function charadesResult(correct) {
+  clearInterval(state.timerInterval);
+  if (correct) state.scores[state.players[state.charades.playerIdx]]++;
+  state.charades.wordIdx++;
+  state.charades.playerIdx = (state.charades.playerIdx + 1) % state.players.length;
+  if (state.charades.playerIdx === 0) state.charades.round++;
+  renderCharadesCard();
+}
+function charadesSkip() { clearInterval(state.timerInterval); state.charades.wordIdx++; renderCharadesCard(); }
+function renderCharadesEnd() { showEnd('', startCharades); }
+
+// ═══════════════════════════════════════════════════════
+//  2. IMPOSTER
+// ═══════════════════════════════════════════════════════
+function startImposter() {
+  const imposterCount = parseInt(document.getElementById('imposterCount')?.value) || 1;
+  const wordSet = shuffle(state.game.wordSets)[0];
+  const indices = shuffle(state.players.map((_,i)=>i));
+  state.imposter = {
+    word: wordSet.word, fakeWord: wordSet.fake,
+    imposterIndices: new Set(indices.slice(0, imposterCount)),
+    currentReveal: 0,
+  };
+  renderImposterReveal();
+}
+function renderImposterReveal() {
+  const { players, imposter } = state;
+  if (imposter.currentReveal >= players.length) { renderImposterDiscussion(); return; }
+  const player = players[imposter.currentReveal];
+  const isImp = imposter.imposterIndices.has(imposter.currentReveal);
+  gs().innerHTML = `
+    ${turnHeader(`📱 Pass to ${player}`, `Player ${imposter.currentReveal+1} of ${players.length}`)}
+    <div class="card-display" id="wordReveal" style="cursor:pointer" onclick="showImposterWord()">
+      <div class="main-text">👆 Tap to reveal your role</div>
+      <div class="sub-text">Make sure no one else can see!</div>
+    </div>
+    <div id="wordShown" class="hidden">
+      ${isImp ? `
+        <div style="text-align:center;margin-bottom:12px"><span class="imposter-badge">🔴 You are the IMPOSTER</span></div>
+        <div class="card-display"><div class="category">Your fake word</div><div class="main-text">${imposter.fakeWord}</div><div class="sub-text">Blend in! Don't get caught.</div></div>
+      ` : `
+        <div style="text-align:center;margin-bottom:12px"><span class="imposter-badge" style="background:#22c55e">✅ You are a Crewmate</span></div>
+        <div class="card-display"><div class="category">The secret word</div><div class="main-text">${imposter.word}</div><div class="sub-text">Find the imposter!</div></div>
+      `}
+      <button class="btn" onclick="state.imposter.currentReveal++;renderImposterReveal()" style="margin-top:12px">Done, pass the phone →</button>
+    </div>`;
+}
+function showImposterWord() {
+  document.getElementById('wordReveal').classList.add('hidden');
+  document.getElementById('wordShown').classList.remove('hidden');
+}
+function renderImposterDiscussion() {
+  const { players } = state;
+  gs().innerHTML = `
+    ${turnHeader('💬 Discussion Time!', 'Everyone has their word — discuss, then vote!')}
+    <div class="card-display"><div class="main-text" style="font-size:1rem;line-height:1.6">Take turns describing your word in 1–2 sentences without saying it directly, then vote!</div></div>
+    <div style="margin-bottom:8px;font-size:0.82rem;color:var(--muted)">Who is the imposter?</div>
+    <div class="options-grid">${players.map((p,i)=>`<button class="option-btn" onclick="voteImposter(${i})">${p}</button>`).join('')}</div>`;
+}
+function voteImposter(idx) {
+  const { players, imposter, scores } = state;
+  const isCorrect = imposter.imposterIndices.has(idx);
+  if (isCorrect) players.forEach((p,i) => { if (!imposter.imposterIndices.has(i)) scores[p]++; });
+  else [...imposter.imposterIndices].forEach(i => scores[players[i]] += 2);
+  const imposterNames = [...imposter.imposterIndices].map(i => players[i]).join(', ');
+  gs().innerHTML = `
+    <div class="result-banner" style="border-color:${isCorrect?'#22c55e':'#e94560'}">
+      <div style="font-size:2rem">${isCorrect?'🎉':'😈'}</div>
+      <div class="winner">${isCorrect?'Imposter caught!':'Imposter escaped!'}</div>
+      <div class="sub">Imposter${imposter.imposterIndices.size>1?'s were':' was'} <strong>${imposterNames}</strong><br>Word: <strong>${imposter.word}</strong> · Fake: <strong>${imposter.fakeWord}</strong></div>
+    </div>
+    <div style="margin-bottom:12px">
+      ${players.map((p,i)=>`<div class="reveal-card"><span style="font-size:1.2rem">${imposter.imposterIndices.has(i)?'🔴':'🟢'}</span><span class="pname">${p}</span><span class="role ${imposter.imposterIndices.has(i)?'imp':''}">${imposter.imposterIndices.has(i)?'IMPOSTER':'Crewmate'}</span></div>`).join('')}
+    </div>
+    ${renderScoreboard()}
+    <button class="btn" onclick="startImposter()">Next Round</button>
+    <button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  3. TWO TRUTHS ONE LIE
+// ═══════════════════════════════════════════════════════
+function startTwoTruths() {
+  state.scores = Object.fromEntries(state.players.map(p=>[p,0]));
+  state.twoTruths = { playerIdx: 0 };
+  renderTwoTruthsTurn();
+}
+function renderTwoTruthsTurn() {
+  const { players, twoTruths } = state;
+  const { playerIdx } = twoTruths;
+  if (playerIdx >= players.length) { showEnd('', startTwoTruths); return; }
+  const player = players[playerIdx];
+  gs().innerHTML = `
+    ${turnHeader(`🤥 ${player}'s turn`, `Player ${playerIdx+1} of ${players.length}`)}
+    <div class="card-display"><div class="main-text" style="font-size:1rem;line-height:1.7">Think of <strong>2 truths</strong> and <strong>1 lie</strong>.<br>Say them in any order — everyone votes which is the lie!</div></div>
+    <button class="btn" onclick="twoTruthsReveal()" style="margin-bottom:10px">Everyone has voted — reveal!</button>
+    <button class="btn btn-secondary" onclick="state.twoTruths.playerIdx++;renderTwoTruthsTurn()">Skip</button>`;
+}
+function twoTruthsReveal() {
+  const { players, twoTruths, scores } = state;
+  const player = players[twoTruths.playerIdx];
+  const others = players.filter(p=>p!==player);
+  gs().innerHTML = `
+    ${turnHeader(`🤥 ${player} — reveal the lie!`, '')}
+    <div class="card-display"><div class="main-text" style="font-size:0.95rem;line-height:1.6">Select who guessed the lie correctly.<br><span style="font-size:0.8rem;color:var(--muted)">Correct guessers +1 pt · Fooled guessers give ${player} +1 pt</span></div></div>
+    <div class="options-grid" id="guessGrid">
+      ${others.map(p=>`<button class="option-btn" id="g-${p}" onclick="toggleGuess('${p}')">${p}</button>`).join('')}
+    </div>
+    <button class="btn" onclick="twoTruthsScore()">Confirm & Score</button>`;
+  gs()._correct = new Set();
+}
+function toggleGuess(p) {
+  const correct = gs()._correct = gs()._correct || new Set();
+  const btn = document.getElementById(`g-${p}`);
+  correct.has(p) ? (correct.delete(p), btn.classList.remove('correct')) : (correct.add(p), btn.classList.add('correct'));
+}
+function twoTruthsScore() {
+  const { players, twoTruths, scores } = state;
+  const player = players[twoTruths.playerIdx];
+  const correct = gs()._correct || new Set();
+  const wrong = players.filter(p=>p!==player && !correct.has(p));
+  scores[player] += wrong.length;
+  correct.forEach(p => scores[p]++);
+  gs().innerHTML = `
+    <div class="card-display"><div class="main-text" style="font-size:0.95rem;line-height:1.6">
+      ✅ Guessed correctly: ${correct.size>0?[...correct].join(', '):'None'}<br>
+      ❌ Fooled: ${wrong.join(', ')||'None'}
+    </div></div>
+    ${renderScoreboard()}
+    <button class="btn" onclick="state.twoTruths.playerIdx++;renderTwoTruthsTurn()">Next Player →</button>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  4. NEVER HAVE I EVER
+// ═══════════════════════════════════════════════════════
+function startNeverHaveIEver() {
+  state.nhie = { statements: shuffle(state.game.statements), idx: 0, playerIdx: 0 };
+  renderNhieTurn();
+}
+function renderNhieTurn() {
+  const { players, nhie } = state;
+  if (nhie.idx >= nhie.statements.length) {
+    gs().innerHTML = `<div class="result-banner"><div style="font-size:2.5rem">🤚</div><div class="winner">That's all!</div><div class="sub">Hope you learned something new about each other!</div></div>
+    <button class="btn" onclick="startNeverHaveIEver()">Play Again</button><button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+    return;
+  }
+  const player = players[nhie.playerIdx];
+  gs().innerHTML = `
+    ${turnHeader(`🤚 ${player} reads`, `Statement ${nhie.idx+1} of ${nhie.statements.length}`)}
+    <div class="card-display">
+      <div class="category">Never Have I Ever…</div>
+      <div class="main-text" style="font-size:1.1rem">${nhie.statements[nhie.idx]}</div>
+      <div class="sub-text">Put a finger down if you have!</div>
+    </div>
+    <div class="players-list">${players.map(p=>`<button class="player-chip" id="nhie-${p}" onclick="toggleNhie('${p}')">${p}</button>`).join('')}</div>
+    <div style="font-size:0.75rem;color:var(--muted);text-align:center;margin-bottom:14px">Tap players who HAVE done it</div>
+    <button class="btn" onclick="nhie.idx++;nhie.playerIdx=(nhie.playerIdx+1)%players.length;renderNhieTurn()">Next →</button>`;
+  gs()._nhie = new Set();
+}
+function toggleNhie(p) {
+  const s = gs()._nhie = gs()._nhie || new Set();
+  const btn = document.getElementById(`nhie-${p}`);
+  s.has(p) ? (s.delete(p), btn.classList.remove('active')) : (s.add(p), btn.classList.add('active'));
+}
+
+// ═══════════════════════════════════════════════════════
+//  5. WOULD YOU RATHER
+// ═══════════════════════════════════════════════════════
+function startWouldYouRather() {
+  state.scores = Object.fromEntries(state.players.map(p=>[p,0]));
+  state.wyr = { pairs: shuffle(state.game.pairs), idx: 0, playerIdx: 0 };
+  renderWyrTurn();
+}
+function renderWyrTurn() {
+  const { players, wyr } = state;
+  if (wyr.idx >= wyr.pairs.length) { showEnd('', startWouldYouRather); return; }
+  const [a,b] = wyr.pairs[wyr.idx];
+  const player = players[wyr.playerIdx];
+  wyr._votes = {};
+  gs().innerHTML = `
+    ${turnHeader(`🤔 ${player} asks`, `Question ${wyr.idx+1} of ${wyr.pairs.length}`)}
+    <div class="card-display" style="min-height:160px">
+      <div class="category">Would You Rather…</div>
+      <div style="display:flex;gap:8px;width:100%">
+        <div style="flex:1;padding:10px;background:rgba(233,69,96,0.1);border-radius:10px;border:1.5px solid rgba(233,69,96,0.3);font-weight:700;font-size:0.88rem">🅰️ ${a}</div>
+        <div style="flex:1;padding:10px;background:rgba(59,130,246,0.1);border-radius:10px;border:1.5px solid rgba(59,130,246,0.3);font-weight:700;font-size:0.88rem">🅱️ ${b}</div>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;font-size:0.8rem;color:var(--muted)">Everyone votes:</div>
+    ${players.map(p=>`
+      <div class="vote-row">
+        <span class="vname">${p}</span>
+        <button id="wyr-${p}-A" onclick="wyrVote('${p}','A','${a}','${b}')">🅰️</button>
+        <button id="wyr-${p}-B" onclick="wyrVote('${p}','B','${a}','${b}')">🅱️</button>
+      </div>`).join('')}
+    <button class="btn" style="margin-top:10px" onclick="revealWyr('${a}','${b}')">Reveal →</button>`;
+}
+function wyrVote(player, choice, a, b) {
+  state.wyr._votes[player] = choice;
+  document.getElementById(`wyr-${player}-A`).className = choice==='A' ? 'sel-a' : '';
+  document.getElementById(`wyr-${player}-B`).className = choice==='B' ? 'sel-b' : '';
+}
+function revealWyr(a, b) {
+  const { players, wyr } = state;
+  const aV = players.filter(p=>wyr._votes[p]==='A');
+  const bV = players.filter(p=>wyr._votes[p]==='B');
+  gs().innerHTML = `
+    <div class="card-display" style="min-height:150px">
+      <div style="display:flex;gap:8px;width:100%;align-items:stretch">
+        <div style="flex:${aV.length||1};padding:12px;background:rgba(233,69,96,0.12);border-radius:10px;border:2px solid rgba(233,69,96,0.4);text-align:center">
+          <div style="font-size:1.3rem;font-weight:800;color:#e94560">${aV.length}</div>
+          <div style="font-size:0.7rem;font-weight:700;margin:4px 0">🅰️ ${a}</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${aV.join(', ')||'—'}</div>
+        </div>
+        <div style="flex:${bV.length||1};padding:12px;background:rgba(59,130,246,0.12);border-radius:10px;border:2px solid rgba(59,130,246,0.4);text-align:center">
+          <div style="font-size:1.3rem;font-weight:800;color:#3b82f6">${bV.length}</div>
+          <div style="font-size:0.7rem;font-weight:700;margin:4px 0">🅱️ ${b}</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${bV.join(', ')||'—'}</div>
+        </div>
+      </div>
+      <div class="sub-text">Discuss — why did you pick what you picked?</div>
+    </div>
+    <button class="btn" onclick="wyr.idx++;wyr.playerIdx=(wyr.playerIdx+1)%players.length;renderWyrTurn()">Next Question →</button>
+    <button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  6. TRUTH OR DARE
+// ═══════════════════════════════════════════════════════
+function startTruthOrDare() {
+  state.tod = {
+    truths: shuffle(state.game.truths),
+    dares: shuffle(state.game.dares),
+    tIdx: 0, dIdx: 0, playerIdx: 0, round: 1,
+  };
+  renderTodTurn();
+}
+function renderTodTurn() {
+  const { players, tod } = state;
+  const player = players[tod.playerIdx];
+  gs().innerHTML = `
+    ${turnHeader(`🔥 ${player}'s turn`, `Round ${tod.round}`)}
+    <div class="card-display" style="min-height:110px">
+      <div class="main-text" style="font-size:1rem">What will it be, ${player}?</div>
+      <div class="sub-text">Choose your fate wisely…</div>
+    </div>
+    <div class="two-col">
+      <button class="btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="todPick('truth')">🕊️ Truth</button>
+      <button class="btn" style="background:linear-gradient(135deg,#e94560,#7c3aed)" onclick="todPick('dare')">🔥 Dare</button>
+    </div>
+    <button class="btn btn-secondary" onclick="todNext()">Skip player</button>`;
+}
+function todPick(type) {
+  const { tod, players } = state;
+  const player = players[tod.playerIdx];
+  let prompt;
+  if (type === 'truth') {
+    prompt = tod.truths[tod.tIdx % tod.truths.length]; tod.tIdx++;
+  } else {
+    prompt = tod.dares[tod.dIdx % tod.dares.length]; tod.dIdx++;
+  }
+  gs().innerHTML = `
+    ${turnHeader(`${type==='truth'?'🕊️ Truth':'🔥 Dare'} for ${player}`, '')}
+    <div class="card-display" style="min-height:140px">
+      <div class="category">${type==='truth'?'Answer honestly':'You must do this'}</div>
+      <div class="main-text" style="font-size:1.05rem;line-height:1.5">${prompt}</div>
+    </div>
+    <button class="btn btn-green" onclick="todComplete(true)">✅ Done!</button>
+    <button class="btn btn-secondary" onclick="todComplete(false)">❌ Chickened out</button>`;
+}
+function todComplete(done) {
+  if (done) state.scores[state.players[state.tod.playerIdx]]++;
+  todNext();
+}
+function todNext() {
+  const { tod, players } = state;
+  tod.playerIdx = (tod.playerIdx + 1) % players.length;
+  if (tod.playerIdx === 0) tod.round++;
+  renderTodTurn();
+}
+
+// ═══════════════════════════════════════════════════════
+//  7. TRIVIA
+// ═══════════════════════════════════════════════════════
+function startTrivia() {
+  const perPlayer = parseInt(document.getElementById('triviaPerPlayer')?.value) || 3;
+  const questions = shuffle(state.game.questions).slice(0, state.players.length * perPlayer);
+  state.trivia = { questions, idx: 0, playerIdx: 0, answered: false };
+  renderTriviaQuestion();
+}
+function renderTriviaQuestion() {
+  const { players, trivia, scores } = state;
+  if (trivia.idx >= trivia.questions.length) { showEnd('', startTrivia); return; }
+  const q = trivia.questions[trivia.idx];
+  const player = players[trivia.playerIdx];
+  const opts = shuffle(q.opts);
+  trivia._answered = false;
+  gs().innerHTML = `
+    ${turnHeader(`🧠 ${player}'s question`, `${trivia.idx+1} of ${trivia.questions.length}`)}
+    <div class="card-display" style="min-height:100px">
+      <div class="main-text" style="font-size:1rem;line-height:1.4">${q.q}</div>
+    </div>
+    <div class="options-grid">${opts.map(o=>`<button class="option-btn" onclick="triviaAnswer('${o}','${q.a}')">${o}</button>`).join('')}</div>
+    ${renderScoreboard()}`;
+}
+function triviaAnswer(chosen, correct) {
+  if (state.trivia._answered) return;
+  state.trivia._answered = true;
+  const isRight = chosen === correct;
+  if (isRight) state.scores[state.players[state.trivia.playerIdx]]++;
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    if (btn.textContent === correct) btn.classList.add('correct');
+    else if (btn.textContent === chosen && !isRight) btn.classList.add('wrong');
+    btn.disabled = true;
+  });
+  setTimeout(() => {
+    state.trivia.idx++;
+    state.trivia.playerIdx = (state.trivia.playerIdx + 1) % state.players.length;
+    renderTriviaQuestion();
+  }, 1500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  8. MOST LIKELY TO
+// ═══════════════════════════════════════════════════════
+function startMostLikelyTo() {
+  state.mlt = { prompts: shuffle(state.game.prompts), idx: 0, playerIdx: 0 };
+  state.scores = Object.fromEntries(state.players.map(p=>[p,0]));
+  renderMltTurn();
+}
+function renderMltTurn() {
+  const { players, mlt } = state;
+  if (mlt.idx >= mlt.prompts.length) { showEnd('', startMostLikelyTo); return; }
+  const prompt = mlt.prompts[mlt.idx];
+  const reader = players[mlt.playerIdx];
+  mlt._votes = {};
+  gs().innerHTML = `
+    ${turnHeader(`👆 ${reader} reads`, `Prompt ${mlt.idx+1} of ${mlt.prompts.length}`)}
+    <div class="card-display" style="min-height:120px">
+      <div class="category">Most Likely To…</div>
+      <div class="main-text" style="font-size:1.1rem;line-height:1.4">${prompt.replace('Who is most likely to ','')}</div>
+      <div class="sub-text">Everyone points at the same time on 3… 2… 1…</div>
+    </div>
+    <div style="margin-bottom:8px;font-size:0.8rem;color:var(--muted)">Tally the votes — who got the most points?</div>
+    <div class="options-grid">${players.map(p=>`<button class="option-btn" id="mlt-${p}" onclick="mltVote('${p}')">${p}</button>`).join('')}</div>
+    <button class="btn" style="margin-top:8px" onclick="mltNext()">Next Prompt →</button>`;
+}
+function mltVote(player) {
+  state.scores[player]++;
+  const btn = document.getElementById(`mlt-${player}`);
+  btn.textContent = `${player} — ${state.scores[player]} pts`;
+  btn.classList.add('correct');
+}
+function mltNext() {
+  const { mlt, players } = state;
+  mlt.idx++;
+  mlt.playerIdx = (mlt.playerIdx + 1) % players.length;
+  renderMltTurn();
+}
+
+// ═══════════════════════════════════════════════════════
+//  9. HOT TAKES
+// ═══════════════════════════════════════════════════════
+function startHotTakes() {
+  state.ht = { takes: shuffle(state.game.takes), idx: 0, playerIdx: 0 };
+  state.scores = Object.fromEntries(state.players.map(p=>[p,0]));
+  renderHtTurn();
+}
+function renderHtTurn() {
+  const { players, ht } = state;
+  if (ht.idx >= ht.takes.length) { showEnd('', startHotTakes); return; }
+  const take = ht.takes[ht.idx];
+  const reader = players[ht.playerIdx];
+  ht._votes = {};
+  gs().innerHTML = `
+    ${turnHeader(`🌶️ ${reader} reads`, `Take ${ht.idx+1} of ${ht.takes.length}`)}
+    <div class="card-display" style="min-height:110px">
+      <div class="category">Hot Take</div>
+      <div class="main-text" style="font-size:1.05rem;line-height:1.4">${take}</div>
+    </div>
+    <div style="margin-bottom:8px;font-size:0.8rem;color:var(--muted)">Everyone votes — no explaining yet!</div>
+    ${players.map(p=>`
+      <div class="vote-row">
+        <span class="vname">${p}</span>
+        <button id="ht-${p}-a" onclick="htVote('${p}','agree')">✅ Agree</button>
+        <button id="ht-${p}-d" onclick="htVote('${p}','disagree')">❌ Disagree</button>
+      </div>`).join('')}
+    <button class="btn" style="margin-top:10px" onclick="htReveal()">Reveal & Discuss →</button>`;
+}
+function htVote(player, v) {
+  state.ht._votes[player] = v;
+  document.getElementById(`ht-${player}-a`).className = v==='agree' ? 'sel-agree' : '';
+  document.getElementById(`ht-${player}-d`).className = v==='disagree' ? 'sel-disagree' : '';
+}
+function htReveal() {
+  const { players, ht } = state;
+  const agree = players.filter(p=>ht._votes[p]==='agree');
+  const disagree = players.filter(p=>ht._votes[p]==='disagree');
+  gs().innerHTML = `
+    <div class="card-display" style="flex-direction:column;gap:10px;min-height:140px">
+      <div class="category" style="margin:0">🌶️ ${ht.takes[ht.idx]}</div>
+      <div style="display:flex;gap:8px;width:100%">
+        <div style="flex:${agree.length||1};padding:10px;background:rgba(34,197,94,0.12);border-radius:10px;border:1.5px solid rgba(34,197,94,0.4);text-align:center">
+          <div style="font-size:1.2rem;font-weight:800;color:#22c55e">${agree.length}</div>
+          <div style="font-size:0.7rem;color:#22c55e;margin-bottom:4px">Agree</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${agree.join(', ')||'—'}</div>
+        </div>
+        <div style="flex:${disagree.length||1};padding:10px;background:rgba(233,69,96,0.12);border-radius:10px;border:1.5px solid rgba(233,69,96,0.4);text-align:center">
+          <div style="font-size:1.2rem;font-weight:800;color:#e94560">${disagree.length}</div>
+          <div style="font-size:0.7rem;color:#e94560;margin-bottom:4px">Disagree</div>
+          <div style="font-size:0.7rem;color:var(--muted)">${disagree.join(', ')||'—'}</div>
+        </div>
+      </div>
+      <div class="sub-text">Now defend your position! 🗣️</div>
+    </div>
+    <button class="btn" onclick="ht.idx++;ht.playerIdx=(ht.playerIdx+1)%players.length;renderHtTurn()">Next Take →</button>
+    <button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  10. TABOO
+// ═══════════════════════════════════════════════════════
+function startTaboo() {
+  const timerSecs = parseInt(document.getElementById('tabooTimer')?.value) || 60;
+  state.taboo = { cards: shuffle(state.game.cards), cardIdx: 0, timerSecs, playerIdx: 0, round: 1 };
+  renderTabooCard();
+}
+function renderTabooCard() {
+  const { players, taboo } = state;
+  if (taboo.cardIdx >= taboo.cards.length) { showEnd('', startTaboo); return; }
+  clearInterval(state.timerInterval);
+  const card = taboo.cards[taboo.cardIdx];
+  const player = players[taboo.playerIdx];
+  gs().innerHTML = `
+    ${turnHeader(`🚫 ${player} describes`, `Card ${taboo.cardIdx+1} of ${taboo.cards.length} · Round ${taboo.round}`)}
+    ${timerRingHtml(taboo.timerSecs)}
+    <div class="card-display" style="flex-direction:column;padding:20px 16px">
+      <div class="taboo-word">${card.word}</div>
+      <div class="taboo-forbidden">${card.forbidden.map(f=>`<span>🚫 ${f}</span>`).join('')}</div>
+    </div>
+    ${renderScoreboard()}
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" style="flex:1" onclick="tabooResult(false)">❌ Used a word</button>
+      <button class="btn btn-green" style="flex:1" onclick="tabooResult(true)">✅ Guessed! +1</button>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="tabooSkip()">⏭ Skip card</button>`;
+  startTimer(taboo.timerSecs, () => {
+    const cd = document.querySelector('.card-display');
+    if (cd) cd.style.borderColor = '#e94560';
+  });
+}
+function tabooResult(correct) {
+  clearInterval(state.timerInterval);
+  if (correct) state.scores[state.players[state.taboo.playerIdx]]++;
+  tabooNext();
+}
+function tabooSkip() { clearInterval(state.timerInterval); tabooNext(); }
+function tabooNext() {
+  const { taboo, players } = state;
+  taboo.cardIdx++;
+  taboo.playerIdx = (taboo.playerIdx + 1) % players.length;
+  if (taboo.playerIdx === 0) taboo.round++;
+  renderTabooCard();
+}
+
+// ═══════════════════════════════════════════════════════
+//  11. ALIAS
+// ═══════════════════════════════════════════════════════
+function startAlias() {
+  const timerSecs = parseInt(document.getElementById('aliasTimer')?.value) || 45;
+  state.alias = {
+    words: shuffle(state.game.words), wordIdx: 0,
+    timerSecs, playerIdx: 0, round: 1, roundScore: 0,
+  };
+  renderAliasTurn();
+}
+function renderAliasTurn() {
+  const { players, alias } = state;
+  clearInterval(state.timerInterval);
+  const player = players[alias.playerIdx];
+  alias.roundScore = 0;
+  alias._started = false;
+  gs().innerHTML = `
+    ${turnHeader(`⚡ ${player}'s turn`, `Round ${alias.round}`)}
+    <div class="card-display" id="aliasCard" style="cursor:pointer;min-height:140px" onclick="aliasStart()">
+      <div class="main-text">👆 Tap to start!</div>
+      <div class="sub-text">Describe as many words as possible. No gestures!</div>
+    </div>
+    ${renderScoreboard()}`;
+}
+function aliasStart() {
+  if (state.alias._started) return;
+  state.alias._started = true;
+  renderAliasWord();
+  startTimer(state.alias.timerSecs, aliasTimeUp);
+}
+function renderAliasWord() {
+  const { alias } = state;
+  const word = alias.words[alias.wordIdx % alias.words.length];
+  document.getElementById('aliasCard').innerHTML = `
+    ${timerRingHtml(alias.timerSecs).replace('<div class="timer-ring">','<div class="timer-ring" style="position:static;width:60px;height:60px;margin-bottom:8px">')}
+    <div class="main-text">${word}</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-secondary" style="width:auto;padding:8px 18px;font-size:0.85rem" onclick="aliasSkip()">⏭ Skip</button>
+      <button class="btn btn-green" style="width:auto;padding:8px 18px;font-size:0.85rem" onclick="aliasGot()">✅ Got it!</button>
+    </div>
+    <div style="font-size:0.8rem;color:var(--muted);margin-top:6px">This round: ${alias.roundScore} pts</div>`;
+}
+function aliasGot() {
+  state.alias.roundScore++;
+  state.scores[state.players[state.alias.playerIdx]]++;
+  state.alias.wordIdx++;
+  renderAliasWord();
+}
+function aliasSkip() { state.alias.wordIdx++; renderAliasWord(); }
+function aliasTimeUp() {
+  const { alias, players } = state;
+  const player = players[alias.playerIdx];
+  gs().innerHTML = `
+    <div class="result-banner" style="border-color:#eab308">
+      <div style="font-size:2rem">⚡</div>
+      <div class="winner">${player} got ${alias.roundScore} word${alias.roundScore!==1?'s':''}!</div>
+    </div>
+    ${renderScoreboard()}
+    <button class="btn" onclick="aliasNextPlayer()">Next Player →</button>
+    <button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+}
+function aliasNextPlayer() {
+  const { alias, players } = state;
+  alias.playerIdx = (alias.playerIdx + 1) % players.length;
+  if (alias.playerIdx === 0) alias.round++;
+  renderAliasTurn();
+}
+
+// ═══════════════════════════════════════════════════════
+//  12. STORY BUILDER
+// ═══════════════════════════════════════════════════════
+function startStorytelling() {
+  const starter = shuffle(state.game.starters)[0];
+  state.story = {
+    lines: [{ who: 'Narrator', text: starter }],
+    playerIdx: 0, round: 1,
+    maxRounds: Math.max(3, Math.min(6, state.players.length)),
+  };
+  renderStoryTurn();
+}
+function renderStoryTurn() {
+  const { players, story } = state;
+  const { lines, playerIdx, round, maxRounds } = story;
+  if (round > maxRounds) { renderStoryEnd(); return; }
+  const player = players[playerIdx];
+  gs().innerHTML = `
+    ${turnHeader(`📖 ${player}'s turn`, `Round ${round} of ${maxRounds}`)}
+    <div style="margin-bottom:14px;max-height:200px;overflow-y:auto">
+      ${lines.map(l=>`<div class="story-bubble"><div class="who">${l.who}</div>${l.text}</div>`).join('')}
+    </div>
+    <label style="display:block;font-size:0.82rem;color:var(--muted);margin-bottom:6px">Add your sentence to the story:</label>
+    <textarea id="storyInput" rows="3" style="width:100%;background:var(--bg);border:1.5px solid #333;border-radius:10px;padding:10px;color:var(--text);font-size:0.95rem;resize:none;outline:none;font-family:inherit;margin-bottom:12px" placeholder="Continue the story…"></textarea>
+    <button class="btn" onclick="storySubmit()">Add to Story →</button>`;
+}
+function storySubmit() {
+  const { players, story } = state;
+  const text = document.getElementById('storyInput').value.trim();
+  if (!text) return;
+  story.lines.push({ who: players[story.playerIdx], text });
+  story.playerIdx = (story.playerIdx + 1) % players.length;
+  if (story.playerIdx === 0) story.round++;
+  renderStoryTurn();
+}
+function renderStoryEnd() {
+  const { story } = state;
+  gs().innerHTML = `
+    <div class="result-banner">
+      <div style="font-size:2rem">📖</div>
+      <div class="winner">The End!</div>
+      <div class="sub">Your story is complete</div>
+    </div>
+    <div style="max-height:300px;overflow-y:auto;margin-bottom:16px">
+      ${story.lines.map(l=>`<div class="story-bubble"><div class="who">${l.who}</div>${l.text}</div>`).join('')}
+    </div>
+    <button class="btn" onclick="startStorytelling()">New Story</button>
+    <button class="btn btn-secondary" onclick="backToDrawer()">Back to Games</button>`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+renderLanding();
+</script>
+</body>
+</html>
