@@ -1,4 +1,4 @@
-const CACHE = 'boredgames-v1';
+const CACHE = 'boredgames-v2';
 const ASSETS = [
   '/BoredGames/',
   '/BoredGames/index.html',
